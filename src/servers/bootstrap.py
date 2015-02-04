@@ -3,6 +3,7 @@ __author__ = 'kevin'
 from directory import DirectoryService
 from files import FileService
 from locking import LockingService
+from security import SecurityService
 
 class BootstrapService:
 
@@ -16,6 +17,9 @@ class BootstrapService:
 
         d = DirectoryService()
         d.start(D_PORT)
+
+        s = SecurityService()
+        s.start(5555)
 
         f = LockingService()
         f.start(6666)

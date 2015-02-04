@@ -40,7 +40,7 @@ class DirectoryService(BaseService):
         self._execute_sql("delete from servers where host=? and port=?", (host, port))
 
     def list_servers(self, sock, *args):
-        return (pickle.dumps(self._fetch_sql("select * from servers", ())), "LOLPADDING")
+        return (pickle.dumps(self._fetch_sql("select * from servers", ())), "PADDING")
 
     def __server_exists(self, host, port):
         return len(self._fetch_sql("select * from servers where host=? and port=?",(host, port))) != 0
