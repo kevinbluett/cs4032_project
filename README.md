@@ -6,6 +6,7 @@ This project contains a distributed file system with the support for the followi
 - File Service
 - Locking Service 
 - Caching
+- Rudimentary Replication
 
 Comes packaged with a rudimentary reference client proxy.
 
