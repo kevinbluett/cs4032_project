@@ -7,12 +7,19 @@ __author__ = 'kevin'
 class ClientProxy(ClientBase):
 
     def __init__(self, s_host, s_port, d_host, d_port, f_host, f_port, l_host, l_port):
+        # Authentication Service Details
         self.s_host = s_host
         self.s_port = s_port
+
+        # Directory Service Details
         self.d_host = d_host
         self.d_port = d_port
+
+        # File Service details
         self.f_host = f_host
         self.f_port = f_port
+
+        # Locking Service details
         self.l_host = l_host
         self.l_port = l_port
         self.__bootstrap()
@@ -21,6 +28,9 @@ class ClientProxy(ClientBase):
         self._auth_request("demo", "demo")
 
     def read(self, filepath):
+        """
+            Reads a path from the remote file system and returns the finally returned local path.
+        """
         response = self._request(self.d_host, self.d_port, "SELECT_SERVER", (filepath,), self.session_key, "E")
 
         b64 = self._raw_request(self.f_host, self.f_port, "DOWNLOAD", (response[0],), self.session_key, "E")
@@ -32,7 +42,12 @@ class ClientProxy(ClientBase):
             dencoded_string = base64.b64decode(b64)
             file.write(dencoded_string)
 
+        return ".buckets/%s" % response[0]
+
     def write(self, filepath):
+        """
+            Writes a local filepath to a random fileserver, with locking
+        """
         # Request a lock
         lock = self.request_lock(filepath)
         response = self._request(self.d_host, self.d_port, "SELECT_SERVER", (filepath,), self.session_key, "E")
@@ -56,17 +71,15 @@ class ClientProxy(ClientBase):
     def request_unlock(self, filepath, id):
         return self._request(self.l_host, self.l_port, "UNLOCK_FILE", (filepath, id), self.session_key, "E")
 
-    def delete(self, filename):
-        pass
-
     def __bootstrap(self):
         if not os.path.exists(".buckets"):
              os.makedirs(".buckets")
 
 
+if __name__ == "__main__":
+    # Sample interactions built using the module above.
+    cb = ClientProxy("localhost", 5555, "localhost", 8888, "localhost", 7777, "localhost", 6666)
+    cb.read("dir1/kev.txt")
 
-
-cb = ClientProxy("localhost", 5555, "localhost", 8888, "localhost", 7777, "localhost", 6666)
-cb.read("dir1/kev.txt")
-cb = ClientProxy("localhost", 5555, "localhost", 8888, "localhost", 7776, "localhost", 6666)
-cb.write("dir1/kev.1txt")
+    cb = ClientProxy("localhost", 5555, "localhost", 8888, "localhost", 7776, "localhost", 6666)
+    cb.write("dir1/kev.1txt")

@@ -37,6 +37,10 @@ class BaseService:
             self.handle_command(server, wrapped_sock, args[0], *args[1:])
 
     def handle_command(self, server, sock, method, *args):
+        """
+            Takes an incoming request from a client/server, decrypts as necessary and then runs the relevant
+            method. The response is then also encrypted if necessary.
+        """
         # Use "ALLOWED" methods in order to automagically execute correct method
         server.log("Handling command '%s'" % method)
         if method in self.ALLOWED_ACTIONS:
@@ -44,14 +48,16 @@ class BaseService:
 
             encryption_key = None
             encryption_type = args[0]
+
             if encryption_type == "E":
+                """ Encrypted user client -> server encryption, process as follows """
                 message = base64.b64decode(args[1])
                 ticket = base64.b64decode(args[2])
 
                 encryption_key = self.decrypt(ticket, self.SERVER_SHARED_SECRET)
                 args = self.decrypt(message, encryption_key).split(":")
-
             elif encryption_type == "I":
+                """ Encrypted internal server -> server, shared key encryption """
                 encryption_key = self.SERVER_SHARED_SECRET
                 args = self.decrypt(base64.b64decode(args[1]), encryption_key).split(":")
             else:
@@ -86,15 +92,13 @@ class BaseService:
 
 
     def _request(self, server, port, method, data, encrypted=False):
+        """
+            Wrapper around raw request to ease repsonse processing
+        """
         line = self._raw_request(server, port, method, data)
 
         if line is not None:
-            args = line.split(":")[1:]
-
-            #for i in xrange(len(args)):
-            #    args[i] = arg#base64.b64decode(args[i])
-
-            return args
+            return line.split(":")[1:]
         else:
             return None
 
@@ -138,7 +142,13 @@ class BaseService:
             return False
 
     def encrypt(self, message, key):
+        """
+            Simple XOR encryption
+        """
         return ''.join(chr(ord(c)^ord(k)) for c,k in izip(message, cycle(key)))
 
     def decrypt(self, cyphered, key):
+        """
+            Simple XOR decryption
+        """
         return ''.join(chr(ord(c)^ord(k)) for c,k in izip(cyphered, cycle(key)))

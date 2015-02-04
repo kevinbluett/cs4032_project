@@ -1,9 +1,9 @@
 __author__ = 'kevin'
 
-from directory import DirectoryService
-from files import FileService
-from locking import LockingService
-from security import SecurityService
+from directory_service import DirectoryService
+from files_service import FileService
+from locking_service import LockingService
+from security_service import SecurityService
 
 class BootstrapService:
 
